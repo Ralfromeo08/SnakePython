@@ -1,12 +1,13 @@
 import pygame, sys , random
 from pygame.math import Vector2
-
+from button import Button
 
 class SNAKE:
     def __init__(self):
         self.body = [Vector2(5,10),Vector2(4,10),Vector2(3,10)]
         self.direction = Vector2(0,0)
         self.new_block = False
+
 
         self.head_up = pygame.image.load('Assets/head_up.png').convert_alpha()
         self.head_up = pygame.transform.scale(self.head_up,(40,40))
@@ -107,11 +108,10 @@ class SNAKE:
     def reset(self):
         self.body = [Vector2(5,10),Vector2(4,10),Vector2(3,10)]
         self.direction = Vector2(0,0)
-        
+          
 class FRUIT:
     def __init__(self):
         self.randomize()
-
 
     def draw_fruit(self):
         fruit_rect = pygame.Rect(int(self.pos.x * cell_size),int(self.pos.y * cell_size), cell_size,cell_size)
@@ -127,14 +127,13 @@ class MAIN:
         def __init__(self):
             self.snake = SNAKE()
             self.fruit = FRUIT()
-            #Naka upaused muna dapat ang whole Game para gumana "Pause function"
             self.pause = False
-
 
         def update(self):
             self.snake.move_snake()
             self.check_collision()
             self.check_fail()
+
 
         def draw_elements(self):
             self.draw_grass()
@@ -142,28 +141,11 @@ class MAIN:
             self.snake.draw_snake()
             self.draw_score()
 
-        def show_collision_popup(self):
-            #Eto Sa PopUp
-            popup_font = pygame.font.Font('Font/PoetsenOne-Regular.ttf', 30)
-            popup_text = popup_font.render("Bobo mo ", True, (255, 255, 255))
-            popup_rect = popup_text.get_rect(center=(cell_number * cell_size // 2, cell_number * cell_size // 2))
-
-            pygame.draw.rect(screen, (0, 0, 0),
-                             (popup_rect.x - 10, popup_rect.y - 10, popup_rect.width + 20, popup_rect.height + 20))
-            pygame.draw.rect(screen, (255, 255, 255), popup_rect)
-
-            screen.blit(popup_text, popup_rect)
-            pygame.display.flip()
-            #Duration to nang popUp Window
-            pygame.time.delay(500)
-
         def check_collision(self):
             if self.fruit.pos == self.snake.body[0]:
                 self.fruit.randomize()
                 self.snake.add_block()
-                #pag nngyari Kasama to sa ma call
-                self.show_collision_popup()
-                self.pause = True
+                
             for block in self.snake.body[1:]:
                 if block == self.fruit.pos:
                     self.fruit.randomize()
@@ -175,12 +157,12 @@ class MAIN:
             
             for block in self.snake.body[1:]:
                 if block == self.snake.body[0]:
-                    #Habang di pa nag cocollide naka false yung pause para di tumigil
-                    self.pause = False
+                    self.game_over()
 
         def game_over(self):
+            
             self.snake.reset()
-
+            
             
         def draw_grass(self):
             grass_color = (167,209,61)
@@ -212,50 +194,116 @@ class MAIN:
 
 
 pygame.init()
+screen_width = 750
+screen_height = 450
 cell_size = 40
 cell_number = 20
 screen =  pygame.display.set_mode((cell_number*cell_size,cell_number*cell_size))
+game_font = pygame.font.Font('Font/PoetsenOne-Regular.ttf', 25)
+SCREEN = pygame.display.set_mode((800, 800))
 pygame.display.set_caption("Snake Trivia Game")
 clock = pygame.time.Clock()
 apple = pygame.image.load('Assets/fruit.png').convert_alpha()
 apple = pygame.transform.scale(apple,(40,40))
-game_font = pygame.font.Font('Font/PoetsenOne-Regular.ttf', 25)
+BG = pygame.image.load("Assets/Background.png")
 
+
+def get_font(size):
+    return pygame.font.Font("Font/font.ttf", size)
 
 main_game = MAIN()
-
 SCREEN_UPDATE = pygame.USEREVENT
-pygame.time.set_timer(SCREEN_UPDATE,500)
 
 
-run = True
-while run:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            run = False
-             
-
-        if event.type == SCREEN_UPDATE:
-            main_game.update()
+pygame.time.set_timer(SCREEN_UPDATE,100)
+pause = True
         
+
+def main_menu():
+    while True:
+        SCREEN.blit(BG, (0, 0))
+
+        MENU_MOUSE_POS = pygame.mouse.get_pos()
+
+        MENU_TEXT = get_font(35).render("Snake Trivia Game", True, "white")
+        MENU_RECT = MENU_TEXT.get_rect(center=(400, 100))
+
+        PLAY_BUTTON = Button(image=pygame.image.load("Assets/Buttons/Play Rect.png"), pos=(400, 350), 
+                            text_input="PLAY", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
+        QUIT_BUTTON = Button(image=pygame.image.load("Assets/Buttons/Quit Rect.png"), pos=(400, 550), 
+                            text_input="QUIT", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
+
+        SCREEN.blit(MENU_TEXT, MENU_RECT)
+
+        for button in [PLAY_BUTTON, QUIT_BUTTON]:
+            button.changeColor(MENU_MOUSE_POS)
+            button.update(SCREEN)
         
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:
-                if main_game.snake.direction.y != 1:
-                    main_game.snake.direction = Vector2(0,-1)
-            if event.key == pygame.K_DOWN:
-                if main_game.snake.direction.y != -1:
-                    main_game.snake.direction = Vector2(0,1)
-            if event.key == pygame.K_LEFT:
-                if main_game.snake.direction.x != 1:
-                    main_game.snake.direction = Vector2(-1,0)
-            if event.key == pygame.K_RIGHT:
-                if main_game.snake.direction.x != -1:
-                    main_game.snake.direction = Vector2(1,0)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    
+                    play()
+
+                if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    pygame.quit()
+                    sys.exit()
+
+        pygame.display.update()
+
+def play():
+    run = True
+    while run:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                 run = False
+
+            if event.type == SCREEN_UPDATE:
+                main_game.update()
+        
+            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    paused()
+                if event.key == pygame.K_UP:
+                    if main_game.snake.direction.y != 1:
+                        main_game.snake.direction = Vector2(0,-1)
+                if event.key == pygame.K_DOWN:
+                    if main_game.snake.direction.y != -1:
+                        main_game.snake.direction = Vector2(0,1)
+                if event.key == pygame.K_LEFT:
+                    if main_game.snake.direction.x != 1:
+                        main_game.snake.direction = Vector2(-1,0)
+                if event.key == pygame.K_RIGHT:
+                    if main_game.snake.direction.x != -1:
+                        main_game.snake.direction = Vector2(1,0)
+        
+        screen.fill((175,215,70))
+        main_game.draw_elements()
+        pygame.display.update()
+        clock.tick(60)
+
+def paused():
+    while pause:
+        
+        MENU_TEXT = get_font(15).render("Press Escape to Continue", True, "white")
+        MENU_RECT = MENU_TEXT.get_rect(center=(400, 100))
+        SCREEN.blit(MENU_TEXT, MENU_RECT)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+            if event.type == pygame.KEYDOWN:    
+                if event.key == pygame.K_ESCAPE:                        
+                        play()
+                        
+        pygame.display.update()
+        clock.tick(60)
     
-    screen.fill((175,215,70))
-    main_game.draw_elements()
-    pygame.display.update()
-    clock.tick(60)
 
-
+main_menu()
