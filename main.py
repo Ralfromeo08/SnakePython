@@ -48,6 +48,7 @@ class SNAKE:
         self.update_head_graphics()
         self.update_tail_graphics()
 
+
         for index,block in enumerate(self.body):
             x_pos = int(block.x * cell_size)
             y_pos = int(block.y * cell_size)
@@ -108,6 +109,7 @@ class SNAKE:
     def reset(self):
         self.body = [Vector2(5,10),Vector2(4,10),Vector2(3,10)]
         self.direction = Vector2(0,0)
+
           
 class FRUIT:
     def __init__(self):
@@ -127,7 +129,7 @@ class MAIN:
         def __init__(self):
             self.snake = SNAKE()
             self.fruit = FRUIT()
-            self.pause = False
+            self.paused = False
 
         def update(self):
             self.snake.move_snake()
@@ -159,11 +161,40 @@ class MAIN:
                 if block == self.snake.body[0]:
                     self.game_over()
 
-        def game_over(self):
+        def game_over(self): 
             
             self.snake.reset()
+
+        def toggle_pause(self):
+            self.paused = not self.paused
+        
+        def draw_pause_screen(self):
+            SCREEN.blit(BG, (0, 0))
+            MENU_MOUSE_POS = pygame.mouse.get_pos()
+
+            pause_text =  get_font(35).render("Game Paused", True, "white")
+            pause_rect = pause_text.get_rect(center=(400, 250))
+
+            pause2_text =  get_font(35).render("Press esc to resume", True, "white")
+            pause2_rect = pause_text.get_rect(center=(270, 350))
+
+
             
+            screen.blit(pause_text, pause_rect)
+             
+            screen.blit(pause2_text, pause2_rect)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                  
             
+            pygame.display.update()
+
+            
+        
+        
         def draw_grass(self):
             grass_color = (167,209,61)
             for row in range(cell_number):
@@ -216,7 +247,7 @@ SCREEN_UPDATE = pygame.USEREVENT
 
 
 pygame.time.set_timer(SCREEN_UPDATE,100)
-pause = True
+
         
 
 def main_menu():
@@ -259,51 +290,41 @@ def play():
     while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                 run = False
+                run = False
 
-            if event.type == SCREEN_UPDATE:
-                main_game.update()
-        
-            
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    paused()
-                if event.key == pygame.K_UP:
-                    if main_game.snake.direction.y != 1:
-                        main_game.snake.direction = Vector2(0,-1)
-                if event.key == pygame.K_DOWN:
-                    if main_game.snake.direction.y != -1:
-                        main_game.snake.direction = Vector2(0,1)
-                if event.key == pygame.K_LEFT:
-                    if main_game.snake.direction.x != 1:
-                        main_game.snake.direction = Vector2(-1,0)
-                if event.key == pygame.K_RIGHT:
-                    if main_game.snake.direction.x != -1:
-                        main_game.snake.direction = Vector2(1,0)
-        
-        screen.fill((175,215,70))
-        main_game.draw_elements()
+            if not main_game.paused:
+                if event.type == SCREEN_UPDATE:
+                    main_game.update()
+
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        main_game.toggle_pause()
+
+                    if not main_game.paused:
+                        if event.key == pygame.K_UP:
+                            if main_game.snake.direction.y != 1:
+                                main_game.snake.direction = Vector2(0,-1)
+                        if event.key == pygame.K_DOWN:
+                            if main_game.snake.direction.y != -1:
+                                main_game.snake.direction = Vector2(0,1)
+                        if event.key == pygame.K_LEFT:
+                            if main_game.snake.direction.x != 1:
+                                main_game.snake.direction = Vector2(-1,0)
+                        if event.key == pygame.K_RIGHT:
+                            if main_game.snake.direction.x != -1:
+                                main_game.snake.direction = Vector2(1,0)
+
+            else:  # Game is paused
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        main_game.toggle_pause()
+
+        screen.fill((175, 215, 70))
+        if not main_game.paused:
+            main_game.draw_elements()
+        else:
+            main_game.draw_pause_screen()
         pygame.display.update()
         clock.tick(60)
-
-def paused():
-    while pause:
-        
-        MENU_TEXT = get_font(15).render("Press Escape to Continue", True, "white")
-        MENU_RECT = MENU_TEXT.get_rect(center=(400, 100))
-        SCREEN.blit(MENU_TEXT, MENU_RECT)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
-
-            if event.type == pygame.KEYDOWN:    
-                if event.key == pygame.K_ESCAPE:                        
-                        play()
-                        
-        pygame.display.update()
-        clock.tick(60)
-    
 
 main_menu()
