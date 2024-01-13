@@ -48,7 +48,6 @@ class SNAKE:
         self.update_head_graphics()
         self.update_tail_graphics()
 
-
         for index,block in enumerate(self.body):
             x_pos = int(block.x * cell_size)
             y_pos = int(block.y * cell_size)
@@ -107,9 +106,10 @@ class SNAKE:
         self.new_block = True
 
     def reset(self):
+        
         self.body = [Vector2(5,10),Vector2(4,10),Vector2(3,10)]
         self.direction = Vector2(0,0)
-
+        
           
 class FRUIT:
     def __init__(self):
@@ -129,12 +129,58 @@ class MAIN:
         def __init__(self):
             self.snake = SNAKE()
             self.fruit = FRUIT()
-            self.paused = False
+            self.pause = False
+            self.score = 0
+            self.questions = [
+            {"question": "Question 1?", "a": "Answer A", "b": "Answer B", "c": "Answer C", "correct": "a"},
+            {"question": "Question 2?", "a": "Answer A", "b": "Answer B", "c": "Answer C", "correct": "b"},
+            # Add more questions in a similar format
+        ]
 
         def update(self):
             self.snake.move_snake()
             self.check_collision()
             self.check_fail()
+
+            if self.score % 5 == 0 and self.score > 0:
+                self.ask_question()
+        
+        def ask_question(self):
+            # Randomly select a question and answers
+            selected_question = random.choice(self.questions)
+            Q = selected_question["question"]
+            A = selected_question["a"]
+            B = selected_question["b"]
+            C = selected_question["c"]
+            correct_answer = selected_question["correct"]
+
+            # Rest of your code for displaying the question and answers
+            pop_up_rect = pygame.Rect(30, 150, 750, 500)
+            pygame.draw.rect(screen, (255, 255, 255), pop_up_rect)
+
+            # QUESTIONS
+            question_text = get_font(20).render(Q, True, "black")
+            question_rect = question_text.get_rect(center=(screen_width // 2, screen_height // 2))
+            screen.blit(question_text, question_rect)
+
+            # ANSWERS
+            answer_text1 = get_font(20).render("A." + A, True, "black")
+            answer_rect1 = answer_text1.get_rect(center=(250, 350))
+            screen.blit(answer_text1, answer_rect1)
+
+            answer_text2 = get_font(20).render("B." + B, True, "black")
+            answer_rect2 = answer_text1.get_rect(center=(250, 450))
+            screen.blit(answer_text2, answer_rect2)
+
+            answer_text3 = get_font(20).render("C." + C, True, "black")
+            answer_rect3 = answer_text1.get_rect(center=(250, 550))
+            screen.blit(answer_text3, answer_rect3)
+
+            pygame.display.update()
+        
+        def resume_game(self):
+    # Add any necessary logic to resume the game
+            pass
 
 
         def draw_elements(self):
@@ -147,6 +193,7 @@ class MAIN:
             if self.fruit.pos == self.snake.body[0]:
                 self.fruit.randomize()
                 self.snake.add_block()
+                self.score += 1
                 
             for block in self.snake.body[1:]:
                 if block == self.fruit.pos:
@@ -156,47 +203,22 @@ class MAIN:
         def check_fail(self):
             if not 0 <= self.snake.body[0].x < cell_number or not 0 <=self.snake.body[0].y < cell_number:
                 self.game_over()
+                death_fx.play()
             
             for block in self.snake.body[1:]:
-                if block == self.snake.body[0]:
-                    self.game_over()
 
-        def game_over(self): 
+                if block == self.snake.body[0]:
+
+                    self.game_over()
+      
+
+        def game_over(self):
             
             self.snake.reset()
-
-        def toggle_pause(self):
-            self.paused = not self.paused
-        
-        def draw_pause_screen(self):
-            SCREEN.blit(BG, (0, 0))
-            MENU_MOUSE_POS = pygame.mouse.get_pos()
-
-            pause_text =  get_font(35).render("Game Paused", True, "white")
-            pause_rect = pause_text.get_rect(center=(400, 250))
-
-            pause2_text =  get_font(35).render("Press esc to resume", True, "white")
-            pause2_rect = pause_text.get_rect(center=(270, 350))
-
-
             
-            screen.blit(pause_text, pause_rect)
-             
-            screen.blit(pause2_text, pause2_rect)
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                  
             
-            pygame.display.update()
-
-            
-        
-        
         def draw_grass(self):
-            grass_color = (167,209,61)
+            grass_color = (205, 240, 255)
             for row in range(cell_number):
                 if row % 2 == 0:
                     for col in range(cell_number):
@@ -237,6 +259,11 @@ clock = pygame.time.Clock()
 apple = pygame.image.load('Assets/fruit.png').convert_alpha()
 apple = pygame.transform.scale(apple,(40,40))
 BG = pygame.image.load("Assets/Background.png")
+pygame.mixer.music.load('Music/bg_music.mp3')
+pygame.mixer.music.set_volume(0.6)
+pygame.mixer.music.play(-1, 0.0)
+death_fx = pygame.mixer.Sound("Music/death.mp3")
+death_fx.set_volume(1)
 
 
 def get_font(size):
@@ -247,7 +274,7 @@ SCREEN_UPDATE = pygame.USEREVENT
 
 
 pygame.time.set_timer(SCREEN_UPDATE,100)
-
+pause = True
         
 
 def main_menu():
@@ -290,41 +317,51 @@ def play():
     while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                run = False
+                 run = False
 
-            if not main_game.paused:
-                if event.type == SCREEN_UPDATE:
-                    main_game.update()
+            if event.type == SCREEN_UPDATE:
+                main_game.update()
+            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    paused()
+                if event.key == pygame.K_UP:
+                    if main_game.snake.direction.y != 1:
+                        main_game.snake.direction = Vector2(0, -1)
+                if event.key == pygame.K_DOWN:
+                    if main_game.snake.direction.y != -1:
+                        main_game.snake.direction = Vector2(0, 1)
+                if event.key == pygame.K_LEFT:
+                    if main_game.snake.direction.x != 1:
+                        main_game.snake.direction = Vector2(-1, 0)
+                if event.key == pygame.K_RIGHT:
+                    if main_game.snake.direction.x != -1:
+                        main_game.snake.direction = Vector2(1, 0)
 
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        main_game.toggle_pause()
-
-                    if not main_game.paused:
-                        if event.key == pygame.K_UP:
-                            if main_game.snake.direction.y != 1:
-                                main_game.snake.direction = Vector2(0,-1)
-                        if event.key == pygame.K_DOWN:
-                            if main_game.snake.direction.y != -1:
-                                main_game.snake.direction = Vector2(0,1)
-                        if event.key == pygame.K_LEFT:
-                            if main_game.snake.direction.x != 1:
-                                main_game.snake.direction = Vector2(-1,0)
-                        if event.key == pygame.K_RIGHT:
-                            if main_game.snake.direction.x != -1:
-                                main_game.snake.direction = Vector2(1,0)
-
-            else:  # Game is paused
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        main_game.toggle_pause()
-
-        screen.fill((175, 215, 70))
-        if not main_game.paused:
-            main_game.draw_elements()
-        else:
-            main_game.draw_pause_screen()
+        # Use the same display surface for drawing
+        screen.fill((255, 246, 255))
+        main_game.draw_elements()
         pygame.display.update()
         clock.tick(60)
+
+def paused():
+    while pause:
+        
+        MENU_TEXT = get_font(15).render("Press Escape to Continue", True, "black")
+        MENU_RECT = MENU_TEXT.get_rect(center=(400, 100))
+        SCREEN.blit(MENU_TEXT, MENU_RECT)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+            if event.type == pygame.KEYDOWN:    
+                if event.key == pygame.K_ESCAPE:                        
+                        play()
+                        
+        pygame.display.update()
+        clock.tick(60)
+    
 
 main_menu()
