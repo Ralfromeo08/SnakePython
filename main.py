@@ -131,12 +131,97 @@ class MAIN:
             self.fruit = FRUIT()
             self.pause = False
             self.score = 0
-
+            
+            self.current_question = None
+            self.question_index = 0 
+            self.questions = [
+                {"question": "What is the capital of France?", "options": ["1. Paris", "2. Berlin", "3. London", "4. Madrid"], "answer": "1. Paris"},
+                {"question": "Which planet is known as the Red Planet?", "options": ["1. Mars", "2. Venus", "3. Jupiter", "4. Saturn"], "answer": "1. Mars"},
+                # Add more questions as needed
+            ]
 
         def update(self):
             self.snake.move_snake()
             self.check_collision()
             self.check_fail()
+
+            current_score = len(self.snake.body) - 3
+            if current_score % 5 == 0 and current_score // 5 > self.question_index:
+                self.question_index += 1
+                self.show_question()
+        
+        def show_question(self):
+            if not self.current_question:
+                question_index = (len(self.snake.body) - 3) // 5 - 1
+                self.current_question = self.questions[question_index]
+
+                # Display the question on the screen
+                question_text = get_font(20).render(self.current_question["question"], True, "black")
+                question_rect = question_text.get_rect(center=(400, 400))
+                SCREEN.blit(question_text, question_rect)
+                pygame.display.update()
+
+                # Wait for the player's input (answer)
+                answer = input("Your answer: ").strip().lower()
+
+                # Check if the answer is correct
+                if answer == self.current_question["answer"].lower():
+                    print("Correct!")
+                else:
+                    print(f"Wrong! The correct answer is {self.current_question['answer']}.")
+
+                # Clear the question from the screen
+                screen.fill((255, 246, 255))
+                main_game.draw_elements()
+                pygame.display.update()
+
+                # Reset the current question
+                self.current_question = None
+        
+        def show_question(self):
+            if not self.current_question:
+                question_index = (len(self.snake.body) - 3) // 5 - 1
+                self.current_question = self.questions[question_index]
+
+                # Display the question on the screen
+                question_text = get_font(25).render(self.current_question["question"], True, "black")
+                question_rect = question_text.get_rect(center=(400, 300))
+                SCREEN.blit(question_text, question_rect)
+
+                # Display answer options
+                option_y = 350
+                for option in self.current_question["options"]:
+                    option_text = get_font(20).render(option, True, "black")
+                    option_rect = option_text.get_rect(center=(400, option_y))
+                    SCREEN.blit(option_text, option_rect)
+                    option_y += 30
+
+                pygame.display.update()
+
+                # Wait for the player's input (answer)
+                selected_option = None
+                while selected_option is None:
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            pygame.quit()
+                            sys.exit()
+                        elif event.type == pygame.KEYDOWN:
+                            if pygame.K_1 <= event.key <= pygame.K_9:
+                                selected_option = int(event.unicode) - int('1')
+
+                # Check if the selected option is correct
+                if self.current_question["options"][selected_option] == self.current_question["answer"]:
+                    print("Correct!")
+                else:
+                    print(f"Wrong! The correct answer is {self.current_question['answer']}.")
+
+                # Clear the question from the screen
+                screen.fill((255, 246, 255))
+                main_game.draw_elements()
+                pygame.display.update()
+
+                # Reset the current question
+                self.current_question = None
 
         def draw_elements(self):
             self.draw_grass()
@@ -273,11 +358,11 @@ def play():
     while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                 run = False
+                run = False
 
             if event.type == SCREEN_UPDATE:
                 main_game.update()
-            
+
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     paused()
@@ -299,7 +384,6 @@ def play():
         main_game.draw_elements()
         pygame.display.update()
         clock.tick(FPS)
-
 def paused():
     while pause:
         
