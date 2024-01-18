@@ -107,7 +107,8 @@ class SNAKE:
 
     def reset(self):          
         self.body = [Vector2(5,10),Vector2(4,10),Vector2(3,10)]
-        self.direction = Vector2(0,0)
+        self.direction = Vector2(0,0)\
+        
 
         
               
@@ -151,7 +152,6 @@ class MAIN:
                 self.show_question()
         
         def show_question(self):
-            screen.fill((255, 255, 255))
             if not self.current_question:
                 question_index = (len(self.snake.body) - 3) // 5 - 1
                 self.current_question = self.questions[question_index]
@@ -159,6 +159,7 @@ class MAIN:
                 # Display the question on the screen
                 question_text = get_font(20).render(self.current_question["question"], True, "black")
                 question_rect = question_text.get_rect(center=(400, 400))
+                
                 SCREEN.blit(question_text, question_rect)
                 pygame.display.update()
 
@@ -187,6 +188,7 @@ class MAIN:
                 # Display the question on the screen
                 question_text = get_font(25).render(self.current_question["question"], True, "black")
                 question_rect = question_text.get_rect(center=(400, 300))
+                screen.fill((255, 255, 255))
                 SCREEN.blit(question_text, question_rect)
 
                 # Display answer options
@@ -210,16 +212,30 @@ class MAIN:
                             if pygame.K_1 <= event.key <= pygame.K_9:
                                 selected_option = int(event.unicode) - int('1')
 
-                # Check if the selected option is correct
-                if self.current_question["options"][selected_option] == self.current_question["answer"]:
-                    print("Correct!")
-                else:
-                    print(f"Wrong! The correct answer is {self.current_question['answer']}.")
+                
 
+
+                    
                 # Clear the question from the screen
                 screen.fill((255, 246, 255))
                 main_game.draw_elements()
                 pygame.display.update()
+
+
+                # Check if the selected option is correct
+                if self.current_question["options"][selected_option] == self.current_question["answer"]:
+                    print("correct")
+                    
+                    correct = get_font(25).render("CORRECT!", True, "white")
+                    correct_rect = correct.get_rect(center=(400, 300))  # Adjust the position as needed
+                    SCREEN.blit(correct, correct_rect)
+                    screen.fill((0, 255, 0))
+                else:
+                    print("wrong")
+                    incorrect = get_font(25).render("INCORRECT!", True, "white")
+                    incorrect_rect = incorrect.get_rect(center=(400, 300))  # Adjust the position as needed
+                    SCREEN.blit(incorrect, incorrect_rect)
+                    screen.fill((255, 0, 0))
 
                 # Reset the current question
                 self.current_question = None
@@ -388,10 +404,18 @@ def play():
         main_game.draw_elements()
         pygame.display.update()
         clock.tick(FPS)
-def paused():
-    while pause:
         
-        MENU_TEXT = get_font(15).render("Press Escape to Continue", True, "black")
+def paused():
+    countdown_time = 3  # Set the countdown time in seconds
+    pygame.time.set_timer(SCREEN_UPDATE, 0)  # Disable the regular screen update
+    paused_start_time = pygame.time.get_ticks()
+
+    while pause:
+        elapsed_time = (pygame.time.get_ticks() - paused_start_time) // 1000
+        remaining_time = max(0, countdown_time - elapsed_time)
+
+
+        MENU_TEXT = get_font(15).render(f"Game Paused", True, "black")
         MENU_RECT = MENU_TEXT.get_rect(center=(400, 100))
         SCREEN.blit(MENU_TEXT, MENU_RECT)
 
@@ -400,10 +424,14 @@ def paused():
                 pygame.quit()
                 quit()
 
-            if event.type == pygame.KEYDOWN:    
-                if event.key == pygame.K_ESCAPE:                        
-                        play()
-                        
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pygame.time.set_timer(SCREEN_UPDATE, 100)
+                    MENU_TEXT = get_font(15).render(f"Resuming in {remaining_time} seconds", True, "black")
+                    MENU_RECT = MENU_TEXT.get_rect(center=(400, 100))
+                    SCREEN.blit(MENU_TEXT, MENU_RECT)  # Re-enable the regular screen update
+                    play()
+
         pygame.display.update()
         clock.tick(FPS)
     
