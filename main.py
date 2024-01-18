@@ -105,12 +105,12 @@ class SNAKE:
     def add_block(self):
         self.new_block = True
 
-    def reset(self):
-        
+    def reset(self):          
         self.body = [Vector2(5,10),Vector2(4,10),Vector2(3,10)]
         self.direction = Vector2(0,0)
+
         
-          
+              
 class FRUIT:
     def __init__(self):
         self.randomize()
@@ -136,7 +136,7 @@ class MAIN:
             self.question_index = 0 
             self.questions = [
                 {"question": "What is the capital of France?", "options": ["1. Paris", "2. Berlin", "3. London", "4. Madrid"], "answer": "1. Paris"},
-                {"question": "Which planet is known as the Red Planet?", "options": ["1. Mars", "2. Venus", "3. Jupiter", "4. Saturn"], "answer": "1. Mars"},
+                {"question": "Which planet is known as the Red Planet?", "options": ["1. Earth", "2. Venus", "3. Mars", "4. Saturn"], "answer": "3. Mars"},
                 # Add more questions as needed
             ]
 
@@ -151,6 +151,7 @@ class MAIN:
                 self.show_question()
         
         def show_question(self):
+            screen.fill((255, 255, 255))
             if not self.current_question:
                 question_index = (len(self.snake.body) - 3) // 5 - 1
                 self.current_question = self.questions[question_index]
@@ -246,15 +247,18 @@ class MAIN:
                 death_fx.play()
             
             for block in self.snake.body[1:]:
-
+                
                 if block == self.snake.body[0]:
 
                     self.game_over()
+            
+                    
       
 
         def game_over(self):
-            
             self.snake.reset()
+            
+            
             
             
         def draw_grass(self):
