@@ -1,6 +1,31 @@
 import pygame, sys , random
 from pygame.math import Vector2
 from button import Button
+import pickle
+
+class Highscore:
+    def __init__(self, filename="highscore.dat"):
+        self.filename = filename
+        self.highscore = self.load_highscore()
+
+    def load_highscore(self):
+        try:
+            with open(self.filename, "rb") as file:
+                return pickle.load(file)
+        except (FileNotFoundError, EOFError):
+            return 0
+
+    def save_highscore(self):
+        with open(self.filename, "wb") as file:
+            pickle.dump(self.highscore, file)
+
+    def update_highscore(self, score):
+        if score > self.highscore:
+            self.highscore = score
+            self.save_highscore()
+
+    def get_highscore(self):
+        return self.highscore
 
 class SNAKE:
     def __init__(self):
@@ -108,10 +133,7 @@ class SNAKE:
     def reset(self):          
         self.body = [Vector2(5,10),Vector2(4,10),Vector2(3,10)]
         self.direction = Vector2(0,0)\
-        
-
-        
-              
+                          
 class FRUIT:
     def __init__(self):
         self.randomize()
@@ -125,11 +147,56 @@ class FRUIT:
         self.y = random.randint(0,cell_number-1)
         self.pos = Vector2(self.x,self.y)
 
+class BOMB:
+    def __init__(self):
+        self.randomize()
+        self.bombs = []  # List to store bomb positions
+        self.num_bombs = 3  # Adjust the number of bombs as needed
+
+    def generate_bombs(self):
+        self.bombs = []  # Clear existing bombs
+        for _ in range(self.num_bombs):
+            bomb_pos = Vector2(random.randint(0, cell_number - 1), random.randint(0, cell_number - 1))
+            self.bombs.append(bomb_pos)
+
+    def draw_Bomb(self):
+        bomb_rect = pygame.Rect(int(self.pos.x * cell_size), int(self.pos.y * cell_size), cell_size, cell_size)
+        screen.blit(bomb, bomb_rect)
+
+    def randomize(self):
+        self.x = random.randint(0, cell_number - 1)
+        self.y = random.randint(0, cell_number - 1)
+        self.pos = Vector2(self.x, self.y)
+
+class BOMB2:
+    def __init__(self):
+        self.randomize2()
+        self.bombs2 = []  # List to store bomb positions
+        self.num_bombs2 = 3  # Adjust the number of bombs as needed
+
+    def generate_bombs2(self):
+        self.bombs2 = []  # Clear existing bombs
+        for _ in range(self.num_bombs2):
+            bomb2_pos = Vector2(random.randint(0, cell_number - 1), random.randint(0, cell_number - 1))
+            self.bombs2.append(bomb2_pos)
+
+    def draw_Bomb2(self):
+        bomb2_rect = pygame.Rect(int(self.pos.x * cell_size), int(self.pos.y * cell_size), cell_size, cell_size)
+        screen.blit(bomb2, bomb2_rect)
+
+    def randomize2(self):
+        self.x = random.randint(0, cell_number - 1)
+        self.y = random.randint(0, cell_number - 1)
+        self.pos = Vector2(self.x, self.y)
+
 class MAIN:
     
         def __init__(self):
+            self.highscore_manager = Highscore()
             self.snake = SNAKE()
             self.fruit = FRUIT()
+            self.bomb = BOMB()
+            self.bomb = BOMB2()
             self.pause = False
             self.score = 0
             
@@ -137,7 +204,24 @@ class MAIN:
             self.question_index = 0 
             self.questions = [
                 {"question": "What is the capital of France?", "options": ["1. Paris", "2. Berlin", "3. London", "4. Madrid"], "answer": "1. Paris"},
-                {"question": "Which planet is known as the Red Planet?", "options": ["1. Earth", "2. Venus", "3. Mars", "4. Saturn"], "answer": "3. Mars"},
+                {"question": "Planet is known as the Red Planet?", "options": ["1. Earth", "2. Venus", "3. Mars", "4. Saturn"], "answer": "3. Mars"},
+                {"question": "Earth's Twin Sister?","options": ["1. Earth", "2. Venus", "3. Mars", "4. Saturn"], "answer": "2. Venus"},
+                {"question": "Planet is closest to the Sun?","options": ["1. Mercury", "2. Venus", "3. Earth", "4. Mars"], "answer": "1. Mercury"},
+                {"question": "'Morning Star' or 'Evening Star'?","options": ["1. Mars", "2. Venus", "3. Jupiter", "4. Saturn"], "answer": "2. Venus"},
+                {"question": "dwarf planet beyond Neptune","options": ["1. Pluto", "2. Eris", "3. Haumea", "4. Makemake"], "answer": "1. Pluto"},
+                {"question": "Which planet has the Great Red Spot","options": ["1. Mars", "2. Jupiter", "3. Saturn", "4. Uranus"], "answer": "2. Jupiter"},
+                {"question": "Only Living planet","options": ["1. Mars", "2. Earth", "3. Saturn", "4. Uranus"], "answer": "2. Earth"},
+                {"question": "It has Rings", "options": ["1. Mars", "2. Earth", "3. Saturn", "4. Uranus"],"answer": "3. Saturn"},
+                {"question": "distinctive black and orange striped coat?","options": ["1. Cheetah", "2. Lion", "3. Tiger", "4. Jaguar"], "answer": "3. Tiger"},
+                {"question": "largest mammal in the world?","options": ["1. Elephant", "2. Blue Whale", "3. Giraffe", "4. Gorilla"], "answer": "2. Blue Whale"},
+                {"question": "bird known to mimic human speech?","options": ["1. Penguin", "2. Parrot", "3. Owl", "4. Eagle"], "answer": "2. Parrot"},
+                {"question": "largest species of bear?","options": ["1. Polar Bear", "2. Grizzly Bear", "3. Panda Bear", "4. Black Bear"],"answer": "1. Polar Bear"},
+                {"question": "carries its baby in a pouch?","options": ["1. Koala", "2. Kangaroo", "3. Sloth", "4. Lemur"], "answer": "2. Kangaroo"},
+                {"question": "What is the fastest land animal?","options": ["1. Cheetah", "2. Gazelle", "3. Lion", "4. Zebra"], "answer": "1. Cheetah"},
+                {"question": "changing color to match its surroundings?","options": ["1. Iguana", "2. Chameleon", "3. Turtle", "4. Snake"], "answer": "2. Chameleon"},
+                {"question": "largest species of turtle?","options": ["1. Leatherback Turtle", "2. Loggerhead Turtle", "3. Box Turtle", "4. Snapping Turtle"],"answer": "1. Leatherback Turtle"},
+                {"question": "insect produce bioluminescence?","options": ["1. Firefly", "2. Ladybug", "3. Beetle", "4. Butterfly"], "answer": "1. Firefly"},
+                {"question": "Who did the Most?","options": ["1. Ralf", "2. Irawa", "3. 50-50", "4. I knew it prefers to not answer"], "answer": "1. Ralf"}
                 # Add more questions as needed
             ]
 
@@ -145,37 +229,59 @@ class MAIN:
             self.snake.move_snake()
             self.check_collision()
             self.check_fail()
+            self.check_collision_with_bombs()  # Updated method name
 
             current_score = len(self.snake.body) - 3
             if current_score % 5 == 0 and current_score // 5 > self.question_index:
                 self.question_index += 1
                 self.show_question()
-        
+
         def show_question(self):
             if not self.current_question:
                 question_index = (len(self.snake.body) - 3) // 5 - 1
                 self.current_question = self.questions[question_index]
 
                 # Display the question on the screen
-                question_text = get_font(20).render(self.current_question["question"], True, "black")
-                question_rect = question_text.get_rect(center=(400, 400))
-                
+                question_text = get_font(25).render(self.current_question["question"], True, "black")
+                question_rect = question_text.get_rect(center=(400, 300))
+                screen.fill((255, 255, 255))
                 SCREEN.blit(question_text, question_rect)
+
+                # Display answer options
+                option_y = 350
+                for option in self.current_question["options"]:
+                    option_text = get_font(20).render(option, True, "black")
+                    option_rect = option_text.get_rect(center=(400, option_y))
+                    SCREEN.blit(option_text, option_rect)
+                    option_y += 30
+
                 pygame.display.update()
 
                 # Wait for the player's input (answer)
-                answer = input("Your answer: ").strip().lower()
-
-                # Check if the answer is correct
-                if answer == self.current_question["answer"].lower():
-                    print("Correct!")
-                else:
-                    print(f"Wrong! The correct answer is {self.current_question['answer']}.")
+                selected_option = None
+                while selected_option is None:
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            pygame.quit()
+                            sys.exit()
+                        elif event.type == pygame.KEYDOWN:
+                            if pygame.K_1 <= event.key <= pygame.K_9:
+                                selected_option = int(event.unicode) - int('1')
 
                 # Clear the question from the screen
                 screen.fill((255, 246, 255))
                 main_game.draw_elements()
                 pygame.display.update()
+
+                # Check if the selected option is correct
+                if self.current_question["options"][selected_option] == self.current_question["answer"]:
+                    print("correct")
+                    noice_fx.play()
+                else:
+                    print("wrong")
+                    #death_fx.play()
+                    pygame.time.delay(3000)
+                    self.game_over()
 
                 # Reset the current question
                 self.current_question = None
@@ -245,31 +351,53 @@ class MAIN:
             self.fruit.draw_fruit()
             self.snake.draw_snake()
             self.draw_score()
+            self.bomb.draw_Bomb2()
+            self.bomb.draw_Bomb2()
+            self.draw_highscore()
+        
+        def draw_highscore(self):
+            highscore_text = get_font(10).render(f"Highscore: {self.highscore_manager.get_highscore()}", True, "black")
+            highscore_rect = highscore_text.get_rect(topright=(790, 720))
+            SCREEN.blit(highscore_text, highscore_rect)
+
+        def check_collision_with_bombs(self):
+            for bomb_pos in self.bomb.bombs2:
+                if bomb_pos == self.snake.body[0]:
+                    self.game_over()
+                    #death_fx.play()
 
         def check_collision(self):
+            if self.bomb.pos == self.snake.body[0]:
+                self.game_over()
+                death_fx.play()
+            elif self.bomb.pos == self.snake.body[0]:
+                self.game_over()
+                death_fx.play()
             if self.fruit.pos == self.snake.body[0]:
+                gawk_fx.play()
                 self.fruit.randomize()
                 self.snake.add_block()
                 self.score += 1
-                
+
             for block in self.snake.body[1:]:
                 if block == self.fruit.pos:
+                    gawk_fx.play()
                     self.fruit.randomize()
 
         
         def check_fail(self):
             if not 0 <= self.snake.body[0].x < cell_number or not 0 <=self.snake.body[0].y < cell_number:
-                self.game_over()
                 death_fx.play()
+                self.highscore_manager.update_highscore(len(self.snake.body) - 3)
+                self.game_over()
+
             
             for block in self.snake.body[1:]:
                 
                 if block == self.snake.body[0]:
-
+                    self.highscore_manager.update_highscore(len(self.snake.body) - 3)
                     self.game_over()
             
-                    
-      
 
         def game_over(self):
             self.snake.reset()
@@ -292,18 +420,20 @@ class MAIN:
                             pygame.draw.rect(screen,grass_color,grass_rect)
 
         def draw_score(self):
-            score_text = str(len(self.snake.body) - 3)
-            score_surface = game_font.render(score_text,True,(56,74,12))
+            self.score = len(self.snake.body) - 3  # Update the score based on the snake's body length
+            score_text = str(self.score)
+            score_surface = game_font.render(score_text, True, (56, 74, 12))
             score_x = int(cell_size * cell_number - 60)
             score_y = int(cell_size * cell_number - 40)
-            score_rect = score_surface.get_rect(center = (score_x,score_y))
-            apple_rect = apple.get_rect(midright = (score_rect.left,score_rect.centery))
-            bg_rect = pygame.Rect(apple_rect.left,apple_rect.top,apple_rect.width + score_rect.width + 6,apple_rect.height)
+            score_rect = score_surface.get_rect(center=(score_x, score_y))
+            apple_rect = apple.get_rect(midright=(score_rect.left, score_rect.centery))
+            bg_rect = pygame.Rect(apple_rect.left, apple_rect.top, apple_rect.width + score_rect.width + 6,
+                                  apple_rect.height)
 
-            pygame.draw.rect(screen,(167,209,61),bg_rect)
-            screen.blit(score_surface,score_rect)
-            screen.blit(apple,apple_rect)
-            pygame.draw.rect(screen,(56,74,12),bg_rect,2)
+            pygame.draw.rect(screen, (167, 209, 61), bg_rect)
+            screen.blit(score_surface, score_rect)
+            screen.blit(apple, apple_rect)
+            pygame.draw.rect(screen, (56, 74, 12), bg_rect, 2)
 
 
 pygame.init()
@@ -319,11 +449,19 @@ clock = pygame.time.Clock()
 apple = pygame.image.load('Assets/fruit.png').convert_alpha()
 apple = pygame.transform.scale(apple,(40,40))
 BG = pygame.image.load("Assets/Background.png")
+bomb = pygame.image.load('Assets/bomb.png').convert_alpha()
+bomb = pygame.transform.scale(bomb, (40, 40))
+bomb2 = pygame.image.load('Assets/bomb2.png').convert_alpha()
+bomb2 = pygame.transform.scale(bomb, (40, 40))
 pygame.mixer.music.load('Music/bg_music.mp3')
 pygame.mixer.music.set_volume(0.6)
 pygame.mixer.music.play(-1, 0.0)
 death_fx = pygame.mixer.Sound("Music/death.mp3")
 death_fx.set_volume(1)
+noice_fx = pygame.mixer.Sound("Music/noice.mp3")
+noice_fx.set_volume(1)
+gawk_fx = pygame.mixer.Sound("Music/gawk.mp3")
+gawk_fx.set_volume(1)
 FPS = 10
 
 
@@ -382,6 +520,8 @@ def play():
 
             if event.type == SCREEN_UPDATE:
                 main_game.update()
+                main_game.draw_elements()  # Draw the elements after updating
+                pygame.display.update()
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
